@@ -54,7 +54,6 @@ class Robot(object):
             positions.append((x, y))
             # Update the link angle for the next link
             link_angle += angle
-
         return positions[1:]
 
     def compute_ee_angle(self, given_config):
@@ -87,8 +86,7 @@ class Robot(object):
         @param robot_positions Given links positions.
         '''
         # TODO: Task 2.2
-        
-        links = [(0,0)] + [ pos for pos in robot_positions]
+        links = [ pos for pos in robot_positions]
 
         # Iterate through each pair of adjacent links and check for intersection
         for i in range(len(links) - 3):

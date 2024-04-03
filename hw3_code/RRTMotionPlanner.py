@@ -32,18 +32,18 @@ class RRTMotionPlanner(object):
             if goal_bias < self.goal_prob: # correct way??
                 random_state = self.planning_env.goal
             else:
-                random_state = np.array([np.random.uniform(x_limit[0], x_limit[1]), np.random.uniform(y_limit[0], y_limit[1])])
+                random_state = np.array([np.random.uniform(-np.pi,np.pi), np.random.uniform(-np.pi,np.pi), np.random.uniform(-np.pi,np.pi), np.random.uniform(-np.pi,np.pi)])
             nearest_state_idx, nearest_state = self.tree.get_nearest_config(random_state)
             new_state = self.extend(nearest_state, random_state)
-            if self.planning_env.state_validity_checker(new_state) and self.planning_env.edge_validity_checker(nearest_state, new_state):
+            if self.planning_env.config_validity_checker(new_state) and self.planning_env.edge_validity_checker(nearest_state, new_state):
                 self.tree.add_vertex(new_state)
-                self.tree.add_edge(nearest_state_idx, self.tree.get_idx_for_state(new_state), self.planning_env.compute_distance(nearest_state, new_state))
+                self.tree.add_edge(nearest_state_idx, self.tree.get_idx_for_config(new_state), self.planning_env.robot.compute_distance(nearest_state, new_state))
             
         # print total path cost and time
-        curr_idx = self.tree.get_idx_for_state(self.planning_env.goal)
-        start_idx = self.tree.get_idx_for_state(self.planning_env.start)
+        curr_idx = self.tree.get_idx_for_config(self.planning_env.goal)
+        start_idx = self.tree.get_idx_for_config(self.planning_env.start)
         while curr_idx != start_idx:
-            plan.append(self.tree.vertices[curr_idx].state)
+            plan.append(self.tree.vertices[curr_idx].config)
             curr_idx = self.tree.edges[curr_idx]
 
         # Add the start state to the plan.
@@ -65,7 +65,7 @@ class RRTMotionPlanner(object):
 
         cost = 0
         for i in range(1, len(plan)):
-            cost += self.planning_env.compute_distance(plan[i-1],plan[i])
+            cost += self.planning_env.robot.compute_distance(plan[i-1],plan[i])
         return cost
 
     def extend(self, near_config, rand_config):
@@ -77,9 +77,9 @@ class RRTMotionPlanner(object):
         # TODO: Task 2.3
 
         n = 19 # a changeable parameter for step-size
-        if self.ext_mode == "E1" or self.planning_env.compute_distance(near_config, rand_config) < n:
+        if self.ext_mode == "E1" or self.planning_env.robot.compute_distance(near_config, rand_config) < n:
             return rand_config
-        dist = self.planning_env.compute_distance(near_config, rand_config)
+        dist = self.planning_env.robot.compute_distance(near_config, rand_config)
         normed_direction = (rand_config - near_config) / dist # normed vector
         new_state = near_config + (n * normed_direction)
         return new_state
