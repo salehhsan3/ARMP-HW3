@@ -32,7 +32,7 @@ class RRTMotionPlanner(object):
             if goal_bias < self.goal_prob: # correct way??
                 random_state = self.planning_env.goal
             else:
-                random_state = np.array([np.random.uniform(-np.pi, np.pi) for l in self.planning_env.robot.dim])
+                random_state = np.array([np.random.uniform(-np.pi,np.pi), np.random.uniform(-np.pi,np.pi), np.random.uniform(-np.pi,np.pi), np.random.uniform(-np.pi,np.pi)])
             nearest_state_idx, nearest_state = self.tree.get_nearest_config(random_state)
             new_state = self.extend(nearest_state, random_state)
             if self.planning_env.config_validity_checker(new_state) and self.planning_env.edge_validity_checker(nearest_state, new_state):
@@ -43,7 +43,7 @@ class RRTMotionPlanner(object):
         curr_idx = self.tree.get_idx_for_config(self.planning_env.goal)
         start_idx = self.tree.get_idx_for_config(self.planning_env.start)
         while curr_idx != start_idx:
-            plan.append(self.tree.vertices[curr_idx].state)
+            plan.append(self.tree.vertices[curr_idx].config)
             curr_idx = self.tree.edges[curr_idx]
 
         # Add the start state to the plan.
@@ -65,7 +65,7 @@ class RRTMotionPlanner(object):
 
         cost = 0
         for i in range(1, len(plan)):
-            cost += self.planning_env.compute_distance(plan[i-1],plan[i])
+            cost += self.planning_env.robot.compute_distance(plan[i-1],plan[i])
         return cost
 
     def extend(self, near_config, rand_config):
