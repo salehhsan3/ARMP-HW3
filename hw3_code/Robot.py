@@ -88,7 +88,7 @@ class Robot(object):
         '''
         # TODO: Task 2.2
         
-        links = [(0,0)] + [ pos for pos in robot_positions]
+        links = [ pos for pos in robot_positions]
 
         # Iterate through each pair of adjacent links and check for intersection
         for i in range(len(links) - 3):
