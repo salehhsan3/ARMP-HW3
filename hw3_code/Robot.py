@@ -4,6 +4,16 @@ from matplotlib import pyplot as plt
 from numpy.core.fromnumeric import size
 from shapely.geometry import Point, LineString
 
+
+def lines_colliding(line1,line2):
+    p1 = line1[0]
+    p2 = line1[1]
+    p3 = line2[0]
+    p4 = line2[1]
+    uA = ((p4[0]-p3[0])*(p1[1]-p3[1]) - (p4[1]-p3[1])*(p1[0]-p3[0])) / ((p4[1]-p3[1])*(p2[0]-p1[0]) - (p4[0]-p3[0])*(p2[1]-p1[1]))
+    uB = ((p2[0]-p1[0])*(p1[1]-p3[1]) - (p2[1]-p1[1])*(p1[0]-p3[0])) / ((p4[1]-p3[1])*(p2[0]-p1[0]) - (p4[0]-p3[0])*(p2[1]-p1[1]))
+    return uA >= 0 and uA <= 1 and uB >= 0 and uB <= 1
+
 class Robot(object):
     
     def __init__(self):
@@ -26,7 +36,7 @@ class Robot(object):
         '''
         # TODO: Task 2.2
 
-        pass
+        return np.linalg.norm(np.array(prev_config) - np.array(next_config))
 
     def compute_forward_kinematics(self, given_config):
         '''
@@ -35,7 +45,17 @@ class Robot(object):
         '''
         # TODO: Task 2.2
 
-        pass
+        positions = [(0,0)]
+        link_angle = 0.0  # Initialize link angle
+        for angle in given_config:
+            # Calculate the x and y coordinates of the end of the link
+            x = np.cos(link_angle) * self.links[len(positions)-1] + positions[-1][0]
+            y = np.sin(link_angle) * self.links[len(positions)-1] + positions[-1][1]
+            positions.append((x, y))
+            # Update the link angle for the next link
+            link_angle += angle
+
+        return positions[1:]
 
     def compute_ee_angle(self, given_config):
         '''
@@ -67,6 +87,14 @@ class Robot(object):
         @param robot_positions Given links positions.
         '''
         # TODO: Task 2.2
+        
+        links = [(0,0)] + [ pos for pos in robot_positions]
 
-        pass
-    
+        # Iterate through each pair of adjacent links and check for intersection
+        for i in range(len(links) - 3):
+            for j in range(i + 2, len(links) - 1):
+                line1 = [links[i], links[i + 1]]
+                line2 = [links[j], links[j + 1]]
+                if lines_colliding(line1,line2):
+                    return False  # Collision detected
+        return True
