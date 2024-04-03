@@ -33,7 +33,7 @@ class RRTMotionPlanner(object):
                 random_state = self.planning_env.goal
             else:
                 random_state = np.array([np.random.uniform(x_limit[0], x_limit[1]), np.random.uniform(y_limit[0], y_limit[1])])
-            nearest_state_idx, nearest_state = self.tree.get_nearest_state(random_state)
+            nearest_state_idx, nearest_state = self.tree.get_nearest_config(random_state)
             new_state = self.extend(nearest_state, random_state)
             if self.planning_env.state_validity_checker(new_state) and self.planning_env.edge_validity_checker(nearest_state, new_state):
                 self.tree.add_vertex(new_state)
