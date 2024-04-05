@@ -75,7 +75,7 @@ class RRTInspectionPlanner(object):
                     # Get intermediate points
                     interpolation_steps = min(int(np.linalg.norm(nearest_config - new_config)//INTERMEDIATE_MIN_STEP), INTERMEDIATE_MAX_INSPECTIONS)   # Hyperparameter 6 for max intermediates
                     if interpolation_steps > 0:
-                        interpolated_configs = np.linspace(start=nearest_config, stop=new_config, num=interpolation_steps,endpoint=False)
+                        interpolated_configs = np.linspace(start=nearest_config, stop=new_config, num=interpolation_steps)
                         for intermediate_config in interpolated_configs:
                             # Calculate new inspection points
                             new_inspection_points = self.planning_env.compute_union_of_points(new_inspection_points, self.planning_env.get_inspected_points(intermediate_config))
