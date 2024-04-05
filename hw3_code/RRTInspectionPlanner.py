@@ -28,15 +28,18 @@ class RRTInspectionPlanner(object):
         count = 0
         # Add the start point of the env to the plan 
         self.tree.add_vertex(self.planning_env.start, self.planning_env.get_inspected_points(self.planning_env.start))
+        counter = 0
         while self.tree.max_coverage < self.coverage:
             #goal_bias = np.random.random()
             #if goal_bias < self.goal_prob: 
             #    random_config = self.tree.vertices[self.tree.max_coverage_id].config
             #else:
-            count += 1
-
-            if(count % 300 == 0):
-                print(count, self.tree.max_coverage)
+            
+            if (counter % 100 == 0):
+                print("self. coverage, ", self.coverage,end="\t")
+                print("self.tree.max_coverage, ", self.tree.max_coverage)
+            counter += 1
+            
             # Generate a random config to visit
             random_config = np.array([np.random.uniform(-np.pi,np.pi) for _ in range(self.planning_env.robot.dim)])
 
