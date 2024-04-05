@@ -33,12 +33,16 @@ class RRTInspectionPlanner(object):
             #if goal_bias < self.goal_prob: 
             #    random_config = self.tree.vertices[self.tree.max_coverage_id].config
             #else:
-
+            
             # Generate a random config to visit
             random_config = np.array([np.random.uniform(-np.pi,np.pi) for _ in range(self.planning_env.robot.dim)])
 
             # Get from the tree the nearest state index to the generated point
-            nearest_state_idx, nearest_config = self.tree.get_nearest_config(random_config)
+            goal_bias = np.random.random()
+            if goal_bias < self.goal_prob: 
+                nearest_state_idx, nearest_config = self.tree.max_coverage_id, self.tree.vertices[self.tree.max_coverage_id].config
+            else:
+                nearest_state_idx, nearest_config = self.tree.get_nearest_config(random_config)
             new_config = self.extend(nearest_config, random_config)
 
             # Ensure the new config is legal and the edge exists
@@ -55,7 +59,7 @@ class RRTInspectionPlanner(object):
             self.tree.add_edge(nearest_state_idx, new_id, self.planning_env.robot.compute_distance(nearest_config, new_config))
 
         # print total path cost and time
-        curr_idx = self.tree.get_idx_for_config(self.tree.max_coverage_id)
+        curr_idx = self.tree.max_coverage_id
         start_idx = self.tree.get_root_id()
 
         while curr_idx != start_idx:

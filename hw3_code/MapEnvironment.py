@@ -226,8 +226,13 @@ class MapEnvironment(object):
         @param points1 list of inspected points.
         @param points2 list of inspected points.
         '''
-        return np.union1d(points1, points2)
-        # return np.unique(np.union1d(points1, points2))
+        if(len(points2) == 0):
+            return points1
+        elif len(points1) == 0:
+            return points2
+        else:
+            return np.unique(np.concatenate([points1, points2]), axis=0)
+        
 
     def compute_coverage(self, inspected_points):
         '''
