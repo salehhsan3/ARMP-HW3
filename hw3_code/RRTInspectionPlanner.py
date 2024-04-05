@@ -36,7 +36,7 @@ class RRTInspectionPlanner(object):
             #else:
             
             if (counter % 100 == 0):
-                print("self. coverage, ", self.coverage,end="\t")
+                print("self.coverage, ", self.coverage,end="\t")
                 print("self.tree.max_coverage, ", self.tree.max_coverage)
             counter += 1
             
