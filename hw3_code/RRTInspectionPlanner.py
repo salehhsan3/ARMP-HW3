@@ -26,8 +26,45 @@ class RRTInspectionPlanner(object):
 
         # TODO: Task 2.4
 
-        # your stopping condition should look like this: 
-        # while self.tree.max_coverage < self.coverage:
+        # Add the start point of the env to the plan 
+        self.tree.add_vertex(self.planning_env.start, self.planning_env.get_inspected_points(self.planning_env.start))
+        while self.tree.max_coverage < self.coverage:
+            #goal_bias = np.random.random()
+            #if goal_bias < self.goal_prob: 
+            #    random_config = self.tree.vertices[self.tree.max_coverage_id].config
+            #else:
+
+            # Generate a random config to visit
+            random_config = np.array([np.random.uniform(-np.pi,np.pi) for _ in range(self.planning_env.robot.dim)])
+
+            # Get from the tree the nearest state index to the generated point
+            nearest_state_idx, nearest_config = self.tree.get_nearest_config(random_config)
+            new_config = self.extend(nearest_config, random_config)
+
+            # Ensure the new config is legal and the edge exists
+            if not (self.planning_env.config_validity_checker(new_config) or not (self.planning_env.edge_validity_checker(nearest_config, new_config))):
+                continue
+            
+            # Calculate the new state (combine the inspection points)
+            nearest_inspection_points = self.tree.vertices[nearest_state_idx].inspected_points
+            new_inspection_points = self.planning_env.get_inspected_points(new_config)
+            new_inspection_points = self.planning_env.compute_union_of_points(new_inspection_points, nearest_inspection_points)
+
+            # Add the vertex to the tree
+            new_id = self.tree.add_vertex(new_config, new_inspection_points)
+            self.tree.add_edge(nearest_state_idx, new_id, self.planning_env.robot.compute_distance(nearest_config, new_config))
+
+        # print total path cost and time
+        curr_idx = self.tree.get_idx_for_config(self.tree.max_coverage_id)
+        start_idx = self.tree.get_root_id()
+
+        while curr_idx != start_idx:
+            plan.append(self.tree.vertices[curr_idx].config)
+            curr_idx = self.tree.edges[curr_idx]
+
+        # Add the start state to the plan.
+        plan.append(self.planning_env.start)
+        plan.reverse()
 
         # print total path cost and time
         print('Total cost of path: {:.2f}'.format(self.compute_cost(plan)))
@@ -42,7 +79,10 @@ class RRTInspectionPlanner(object):
         '''
         # TODO: Task 2.4
 
-        pass
+        cost = 0
+        for i in range(1, len(plan)):
+            cost += self.planning_env.robot.compute_distance(plan[i-1],plan[i])
+        return cost
 
     def extend(self, near_config, rand_config):
         '''
@@ -52,6 +92,12 @@ class RRTInspectionPlanner(object):
         '''
         # TODO: Task 2.4
 
-        pass
+        n = 19 # a changeable parameter for step-size
+        if self.ext_mode == "E1" or self.planning_env.robot.compute_distance(near_config, rand_config) < n:
+            return rand_config
+        dist = self.planning_env.robot.compute_distance(near_config, rand_config)
+        normed_direction = (rand_config - near_config) / dist # normed vector
+        new_state = near_config + (n * normed_direction)
+        return new_state
 
     

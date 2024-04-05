@@ -226,9 +226,8 @@ class MapEnvironment(object):
         @param points1 list of inspected points.
         @param points2 list of inspected points.
         '''
-        # TODO: Task 2.4
-
-        pass
+        return np.union1d(points1, points2)
+        # return np.unique(np.union1d(points1, points2))
 
     def compute_coverage(self, inspected_points):
         '''

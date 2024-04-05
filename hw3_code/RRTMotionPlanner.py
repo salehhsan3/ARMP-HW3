@@ -28,7 +28,6 @@ class RRTMotionPlanner(object):
         self.tree.add_vertex(self.planning_env.start)
         while not self.tree.is_goal_exists(self.planning_env.goal):
             goal_bias = np.random.random()
-            x_limit, y_limit = self.planning_env.xlimit, self.planning_env.ylimit
             if goal_bias < self.goal_prob: # correct way??
                 random_state = self.planning_env.goal
             else:
