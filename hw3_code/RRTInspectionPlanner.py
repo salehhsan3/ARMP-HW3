@@ -52,7 +52,7 @@ class RRTInspectionPlanner(object):
             new_config = self.extend(nearest_config, random_config)
 
             # Ensure the new config is legal and the edge exists
-            if not (self.planning_env.config_validity_checker(new_config) or not (self.planning_env.edge_validity_checker(nearest_config, new_config))):
+            if (not (self.planning_env.config_validity_checker(new_config))) or (not (self.planning_env.config_validity_checker(random_config))) or (not (self.planning_env.edge_validity_checker(random_config, new_config))):
                 continue
             
             # Calculate the new state (combine the inspection points)
