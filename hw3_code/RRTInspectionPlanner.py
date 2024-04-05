@@ -24,6 +24,11 @@ class RRTInspectionPlanner(object):
         # initialize an empty plan.
         plan = []
 
+        # Hyper parameters for added inspection interpolation
+        APPEND_INTERMEDIATE_INSPECTIONS = True
+        INTERMEDIATE_MAX_INSPECTIONS = 50
+        INTERMEDIATE_MIN_STEP = 0.2
+
         # TODO: Task 2.4
         count = 0
         # Add the start point of the env to the plan 
@@ -36,7 +41,7 @@ class RRTInspectionPlanner(object):
             #else:
             
             if (counter % 100 == 0):
-                print("self. coverage, ", self.coverage,end="\t")
+                print("iteration, ", counter,end="\t")
                 print("self.tree.max_coverage, ", self.tree.max_coverage)
             counter += 1
             
@@ -57,6 +62,16 @@ class RRTInspectionPlanner(object):
                 # Calculate the new state (combine the inspection points)
                 nearest_inspection_points = self.tree.vertices[nearest_state_idx].inspected_points
                 new_inspection_points = self.planning_env.get_inspected_points(new_config)
+                
+                # This is an improvement for the algorithm that sums up intermediate points for edges
+                if APPEND_INTERMEDIATE_INSPECTIONS:
+                    # Get intermediate points
+                    interpolation_steps = max(int(np.linalg.norm(nearest_config - new_config)//INTERMEDIATE_MIN_STEP), INTERMEDIATE_MAX_INSPECTIONS)   # Hyperparameter 6 for max intermediates
+                    if interpolation_steps > 0:
+                        interpolated_configs = np.linspace(start=nearest_config, stop=new_config, num=interpolation_steps)
+                        for intermediate_config in interpolated_configs:
+                            new_inspection_points = self.planning_env.compute_union_of_points(new_inspection_points, self.planning_env.get_inspected_points(intermediate_config))
+
                 new_inspection_points = self.planning_env.compute_union_of_points(new_inspection_points, nearest_inspection_points)
 
                 # Add the vertex to the tree
@@ -81,6 +96,7 @@ class RRTInspectionPlanner(object):
         # print total path cost and time
         print('Total cost of path: {:.2f}'.format(self.compute_cost(plan)))
         print('Total time: {:.2f}'.format(time.time()-start_time))
+        print('Inspection coverage', self.tree.max_coverage)
 
         return np.array(plan)
 
