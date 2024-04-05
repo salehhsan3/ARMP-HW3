@@ -42,7 +42,8 @@ class RRTInspectionPlanner(object):
             
             if (counter % 100 == 0):
                 print("iteration, ", counter,end="\t")
-                print("self.tree.max_coverage, ", self.tree.max_coverage)
+                print("self.tree.max_coverage, ", self.tree.max_coverage, end="\t")
+                print("self.tree.verts_len, ", len(self.tree.vertices))
             counter += 1
             
             # Generate a random config to visit
@@ -63,6 +64,9 @@ class RRTInspectionPlanner(object):
                 nearest_inspection_points = self.tree.vertices[nearest_state_idx].inspected_points
                 new_inspection_points = self.planning_env.get_inspected_points(new_config)
                 
+                # Combine
+                new_inspection_points = self.planning_env.compute_union_of_points(new_inspection_points, nearest_inspection_points)
+                
                 last_id = nearest_state_idx
                 last_config = nearest_config
 
@@ -71,11 +75,16 @@ class RRTInspectionPlanner(object):
                     # Get intermediate points
                     interpolation_steps = min(int(np.linalg.norm(nearest_config - new_config)//INTERMEDIATE_MIN_STEP), INTERMEDIATE_MAX_INSPECTIONS)   # Hyperparameter 6 for max intermediates
                     if interpolation_steps > 0:
-                        interpolated_configs = np.linspace(start=nearest_config, stop=new_config, num=interpolation_steps)
+                        interpolated_configs = np.linspace(start=nearest_config, stop=new_config, num=interpolation_steps,endpoint=False)
                         for intermediate_config in interpolated_configs:
+                            # Calculate new inspection points
                             new_inspection_points = self.planning_env.compute_union_of_points(new_inspection_points, self.planning_env.get_inspected_points(intermediate_config))
+                            # Add to tree
+                            new_id = self.tree.add_vertex(config=intermediate_config, inspected_points=new_inspection_points)
+                            self.tree.add_edge(last_id,new_id,self.planning_env.robot.compute_distance(last_config, new_config))
+                            last_id = new_id
+                            last_config = intermediate_config
 
-                new_inspection_points = self.planning_env.compute_union_of_points(new_inspection_points, nearest_inspection_points)
 
                 # Add the vertex to the tree
                 new_id = self.tree.add_vertex(config=new_config, inspected_points=new_inspection_points)
