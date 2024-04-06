@@ -75,7 +75,7 @@ class RRTMotionPlanner(object):
         '''
         # TODO: Task 2.3
 
-        n = 19 # a changeable parameter for step-size
+        n = np.pi/8 # a changeable parameter for step-size
         if self.ext_mode == "E1" or self.planning_env.robot.compute_distance(near_config, rand_config) < n:
             return rand_config
         dist = self.planning_env.robot.compute_distance(near_config, rand_config)

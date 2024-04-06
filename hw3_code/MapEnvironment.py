@@ -414,7 +414,7 @@ class MapEnvironment(object):
         else:
             return angle
 
-    def visualize_plan(self, plan):
+    def visualize_plan(self, plan, save_dir):
         '''
         Visualize the final plan as a GIF and stores it.
         @param plan Sequence of configs defining the plan.
@@ -429,10 +429,13 @@ class MapEnvironment(object):
 
         # visualize each step of the given plan
         plan_images = []
+        
+        plt = self.create_map_visualization()
         for i in range(len(plan)):
-
+            
+            back_img = np.zeros((self.ylimit[1]+1, self.xlimit[1]+1))
+            plt.imshow(back_img, origin='lower', zorder=0)
             # create background, obstacles, start
-            plt = self.create_map_visualization()
             plt = self.visualize_obstacles(plt=plt)
             plt = self.visualize_point_location(plt=plt, config=self.start, color='r')
 
@@ -451,7 +454,10 @@ class MapEnvironment(object):
             data = np.fromstring(canvas.tostring_rgb(), dtype=np.uint8, sep='')
             data = data.reshape(canvas.get_width_height()[::-1] + (3,))
             plan_images.append(data)
+            plt.clf()
         
         # store gif
         plan_time = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-        imageio.mimsave(f'plan_{plan_time}.gif', plan_images, 'GIF', duration=0.05)
+        # imageio.mimsave(f'plan_{plan_time}.gif', plan_images, 'GIF', duration=0.05)
+        imageio.mimsave(os.path.join(save_dir, f'plan_{plan_time}.gif'), plan_images, 'GIF', duration=0.05)
+

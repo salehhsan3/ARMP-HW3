@@ -6,12 +6,17 @@ from shapely.geometry import Point, LineString
 
 
 def lines_colliding(line1,line2):
-    p1 = line1[0]
-    p2 = line1[1]
-    p3 = line2[0]
-    p4 = line2[1]
-    uA = ((p4[0]-p3[0])*(p1[1]-p3[1]) - (p4[1]-p3[1])*(p1[0]-p3[0])) / ((p4[1]-p3[1])*(p2[0]-p1[0]) - (p4[0]-p3[0])*(p2[1]-p1[1]))
-    uB = ((p2[0]-p1[0])*(p1[1]-p3[1]) - (p2[1]-p1[1])*(p1[0]-p3[0])) / ((p4[1]-p3[1])*(p2[0]-p1[0]) - (p4[0]-p3[0])*(p2[1]-p1[1]))
+    p1, p2 = line1
+    p3, p4 = line2
+
+    denominator = (p4[1] - p3[1]) * (p2[0] - p1[0]) - (p4[0] - p3[0]) * (p2[1] - p1[1])
+
+    if denominator == 0:
+        return False  # Lines are parallel, so they don't intersect
+
+    uA = ((p4[0] - p3[0]) * (p1[1] - p3[1]) - (p4[1] - p3[1]) * (p1[0] - p3[0])) / denominator
+    uB = ((p2[0] - p1[0]) * (p1[1] - p3[1]) - (p2[1] - p1[1]) * (p1[0] - p3[0])) / denominator
+
     return uA >= 0 and uA <= 1 and uB >= 0 and uB <= 1
 
 class Robot(object):

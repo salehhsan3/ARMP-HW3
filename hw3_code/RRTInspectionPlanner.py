@@ -24,8 +24,13 @@ class RRTInspectionPlanner(object):
         # initialize an empty plan.
         plan = []
 
-        # TODO: Task 2.4
+        # Hyper parameters for added inspection interpolation
+        APPEND_INTERMEDIATE_INSPECTIONS = True
+        INTERMEDIATE_MAX_INSPECTIONS = 50
+        INTERMEDIATE_MIN_STEP = 0.2
 
+        # TODO: Task 2.4
+        count = 0
         # Add the start point of the env to the plan 
         self.tree.add_vertex(self.planning_env.start, self.planning_env.get_inspected_points(self.planning_env.start))
         counter = 0
@@ -36,7 +41,7 @@ class RRTInspectionPlanner(object):
             #else:
             
             if (counter % 100 == 0):
-                print("self.coverage, ", self.coverage,end="\t")
+                print("iteration, ", counter,end="\t")
                 print("self.tree.max_coverage, ", self.tree.max_coverage)
             counter += 1
             
@@ -46,22 +51,32 @@ class RRTInspectionPlanner(object):
             # Get from the tree the nearest state index to the generated point
             goal_bias = np.random.random()
             if goal_bias < self.goal_prob: 
+                # could be bad with high bias and POIs that are spread along the map?
                 nearest_state_idx, nearest_config = self.tree.max_coverage_id, self.tree.vertices[self.tree.max_coverage_id].config
             else:
                 nearest_state_idx, nearest_config = self.tree.get_nearest_config(random_config)
             new_config = self.extend(nearest_config, random_config)
-
             # Ensure the new config is legal and the edge exists
-            if ( (self.planning_env.config_validity_checker(new_config))) and ((self.planning_env.edge_validity_checker(random_config, new_config))):
-                # continue
+            if (self.planning_env.config_validity_checker(new_config) and (self.planning_env.edge_validity_checker(nearest_config, new_config))):
+                
             
-            # Calculate the new state (combine the inspection points)
+                # Calculate the new state (combine the inspection points)
                 nearest_inspection_points = self.tree.vertices[nearest_state_idx].inspected_points
                 new_inspection_points = self.planning_env.get_inspected_points(new_config)
+                
+                # This is an improvement for the algorithm that sums up intermediate points for edges
+                if APPEND_INTERMEDIATE_INSPECTIONS:
+                    # Get intermediate points
+                    interpolation_steps = max(int(np.linalg.norm(nearest_config - new_config)//INTERMEDIATE_MIN_STEP), INTERMEDIATE_MAX_INSPECTIONS)   # Hyperparameter 6 for max intermediates
+                    if interpolation_steps > 0:
+                        interpolated_configs = np.linspace(start=nearest_config, stop=new_config, num=interpolation_steps)
+                        for intermediate_config in interpolated_configs:
+                            new_inspection_points = self.planning_env.compute_union_of_points(new_inspection_points, self.planning_env.get_inspected_points(intermediate_config))
+
                 new_inspection_points = self.planning_env.compute_union_of_points(new_inspection_points, nearest_inspection_points)
 
                 # Add the vertex to the tree
-                new_id = self.tree.add_vertex(new_config, new_inspection_points)
+                new_id = self.tree.add_vertex(config=new_config, inspected_points=new_inspection_points)
                 self.tree.add_edge(nearest_state_idx, new_id, self.planning_env.robot.compute_distance(nearest_config, new_config))
 
         # print total path cost and time
@@ -69,6 +84,9 @@ class RRTInspectionPlanner(object):
         start_idx = self.tree.get_root_id()
 
         while curr_idx != start_idx:
+            nearest_config = self.tree.vertices[self.tree.edges[curr_idx]].config
+            new_config = self.tree.vertices[curr_idx].config
+            print(curr_idx,new_config, self.planning_env.config_validity_checker(new_config), (self.planning_env.edge_validity_checker(nearest_config, new_config)))
             plan.append(self.tree.vertices[curr_idx].config)
             curr_idx = self.tree.edges[curr_idx]
 
@@ -79,6 +97,7 @@ class RRTInspectionPlanner(object):
         # print total path cost and time
         print('Total cost of path: {:.2f}'.format(self.compute_cost(plan)))
         print('Total time: {:.2f}'.format(time.time()-start_time))
+        print('Inspection coverage', self.tree.max_coverage)
 
         return np.array(plan)
 
@@ -102,7 +121,7 @@ class RRTInspectionPlanner(object):
         '''
         # TODO: Task 2.4
 
-        n = 19 # a changeable parameter for step-size
+        n = np.pi/8 # a changeable parameter for step-size
         if self.ext_mode == "E1" or self.planning_env.robot.compute_distance(near_config, rand_config) < n:
             return rand_config
         dist = self.planning_env.robot.compute_distance(near_config, rand_config)
