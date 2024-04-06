@@ -2,10 +2,11 @@ import numpy as np
 import argparse
 from MapEnvironment import MapEnvironment
 from RRTMotionPlanner import RRTMotionPlanner
-from RRTInspectionPlanner import RRTInspectionPlanner
+from RRTInspectionPlannerNoBias import RRTInspectionPlanner
 import time
 import json
 import matplotlib.pyplot as plt
+import concurrent.futures
 
 
 def plot_performance(goal_bias, avg_costs, avg_times, extension, task, coverage):
@@ -25,15 +26,33 @@ def plot_performance(goal_bias, avg_costs, avg_times, extension, task, coverage)
     else:
         plt.savefig(f'ip-task-no-bias\\{extension}\\coverage={coverage}\\performance_plot_{extension}_coverage={coverage}.png')
 
+def run_with_timeout(planner, timeout):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(planner.plan)
+        try:
+            plan = future.result(timeout=timeout)
+            return plan
+        except concurrent.futures.TimeoutError:
+            print("Planner execution timed out.")
+            return None
+
 def main(args):
     goal_biases = [0.05, 0.2]
     extensions = ['E1', 'E2']
     coverages = [0.5, 0.75]
     all_combinations = [(goal_bias, ext, coverage) for goal_bias in goal_biases for ext in extensions for coverage in coverages]
-    num_executions = 10
+    num_executions, succesful_runs = 10, 0
 
-    for bias, ext, coverage in all_combinations: # for inspection planning
-    # for bias, ext in zip(goal_biases, extensions): # for motion planning
+    for coverage, ext in [(coverage, ext) for coverage in coverages for ext in extensions]: # for inspection planning without bias
+        print(coverage, ext)
+        if coverage == 0.5 and ext == 'E1':
+            continue # already computed
+        if coverage == 0.5 and ext == 'E2':
+            continue # already computed
+        # if coverage == 0.75 and ext == 'E1':
+        #     continue # algorithm doesnt converge!
+        # if coverage == 0.75 and ext == 'E2':
+        #     continue # algorithm doesnt converge!
         costs = []
         times = []
 
@@ -45,32 +64,38 @@ def main(args):
                 planner = RRTMotionPlanner(planning_env=planning_env, ext_mode=ext, goal_prob=bias)
                 save_dir = f'mp-task\\bias={bias}\\{ext}'
             elif args.task == 'ip':
-                planner = RRTInspectionPlanner(planning_env=planning_env, ext_mode=ext, goal_prob=bias, coverage=coverage)
+                planner = RRTInspectionPlanner(planning_env=planning_env, ext_mode=ext, goal_prob=0.05, coverage=coverage)
                 save_dir = f'ip-task-no-bias\\{ext}\\coverage={coverage}'
             else:
                 raise ValueError('Unknown task option: %s' % args.task);
 
             start_time = time.time()
-            plan = planner.plan()
+            
+            plan = run_with_timeout(planner,timeout=1000) # dont allow runs for more than 1000 seconds
             execution_time = time.time() - start_time
-            cost_of_path = planner.compute_cost(plan)
-            planner.planning_env.visualize_plan(plan, save_dir)
+            if plan != None:
+                cost_of_path = planner.compute_cost(plan)
+                planner.planning_env.visualize_plan(plan, save_dir)
 
-            costs.append(cost_of_path)
-            times.append(execution_time)
+                costs.append(cost_of_path)
+                times.append(execution_time)
+                succesful_runs += 1
+            else:
+                costs.append(0)
+                times.append(0)
 
-        avg_cost = sum(costs) / num_executions
-        avg_time = sum(times) / num_executions
+        avg_cost = sum(costs) / succesful_runs
+        avg_time = sum(times) / succesful_runs
         if args.task == 'ip':
-            plot_performance(bias, costs, times, ext, 'ip', coverage)
+            plot_performance(0.05, costs, times, ext, 'ip', coverage)
         else:
             plot_performance(bias, costs, times, ext, 'mp', None)
-        print(f"Goal Bias: {bias * 100}%")
+        print(f"Goal Bias: {0.05 * 100}%")
         print(f"Average Cost of Path: {avg_cost}")
         print(f"Average Execution Time: {avg_time} seconds")
 
         output_data = {
-            "goal_bias": bias,
+            # "goal_bias": bias,
             "average_cost_of_path": avg_cost,
             "average_execution_time": avg_time
         }
