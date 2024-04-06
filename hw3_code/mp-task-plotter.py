@@ -77,7 +77,7 @@ def main(args):
         if args.task == 'mp':
             output_file = f"output_bias_{args.task}_bias={bias}_extension={ext}.json"
         else:
-            output_file = f"output_bias_{args.task}_bias={bias}_coverage={coverage}.json"
+            output_file = f"output_bias_{args.task}_bias={bias}_extension={ext}_coverage={coverage}.json"
         with open(output_file, "w") as f:
             json.dump(output_data, f)
 

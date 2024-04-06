@@ -23,7 +23,7 @@ def plot_performance(goal_bias, avg_costs, avg_times, extension, task, coverage)
     if task == 'mp':
         plt.savefig(f'mp-task\\bias={goal_bias}\\{extension}\\performance_plot_bias={goal_bias}_{extension}.png')
     else:
-        plt.savefig(f'ip-task\\coverage={coverage}\\bias={goal_bias}\\{extension}\\performance_plot_bias={goal_bias}_{extension}_coverage={coverage}.png')
+        plt.savefig(f'ip-task\\bias={goal_bias}\\{extension}\\coverage={coverage}\\performance_plot_bias={goal_bias}_{extension}_coverage={coverage}.png')
 
 def main(args):
     goal_biases = [0.05, 0.2]
@@ -34,7 +34,6 @@ def main(args):
 
     for bias, ext, coverage in all_combinations: # for inspection planning
     # for bias, ext in zip(goal_biases, extensions): # for motion planning
-        ext = 'E1'
         costs = []
         times = []
 
@@ -47,7 +46,7 @@ def main(args):
                 save_dir = f'mp-task\\bias={bias}\\{ext}'
             elif args.task == 'ip':
                 planner = RRTInspectionPlanner(planning_env=planning_env, ext_mode=ext, goal_prob=bias, coverage=coverage)
-                save_dir = f'ip-task\\coverage={coverage}\\bias={bias}\\{ext}'
+                save_dir = f'ip-task\\bias={bias}\\{ext}\\coverage={coverage}'
             else:
                 raise ValueError('Unknown task option: %s' % args.task);
 
@@ -76,9 +75,9 @@ def main(args):
             "average_execution_time": avg_time
         }
         if args.task == 'mp':
-            output_file = f"output_bias_{args.task}_bias={bias}_ext={ext}.json"
+            output_file = f"mp-task\\bias={bias}\\{ext}\\output_bias_{args.task}_bias={bias}_ext={ext}.json"
         else:
-            output_file = f"output_bias_coverage={coverage}_{args.task}_bias={bias}_ext={ext}.json"
+            output_file = f"ip-task\\bias={bias}\\{ext}\\coverage={coverage}\\output_bias_coverage={coverage}_{args.task}_bias={bias}_ext={ext}.json"
         with open(output_file, "w") as f:
             json.dump(output_data, f)
 
