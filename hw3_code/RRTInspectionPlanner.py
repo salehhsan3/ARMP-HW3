@@ -27,7 +27,7 @@ class RRTInspectionPlanner(object):
         # Hyper parameters for added inspection interpolation
         APPEND_INTERMEDIATE_INSPECTIONS = True
         INTERMEDIATE_MAX_INSPECTIONS = 50
-        INTERMEDIATE_MIN_STEP = 0.2
+        INTERMEDIATE_MIN_STEP = np.pi/30
 
         # TODO: Task 2.4
         count = 0
@@ -64,10 +64,13 @@ class RRTInspectionPlanner(object):
                 nearest_inspection_points = self.tree.vertices[nearest_state_idx].inspected_points
                 new_inspection_points = self.planning_env.get_inspected_points(new_config)
                 
+                last_id = nearest_state_idx
+                last_config = nearest_config
+
                 # This is an improvement for the algorithm that sums up intermediate points for edges
                 if APPEND_INTERMEDIATE_INSPECTIONS:
                     # Get intermediate points
-                    interpolation_steps = max(int(np.linalg.norm(nearest_config - new_config)//INTERMEDIATE_MIN_STEP), INTERMEDIATE_MAX_INSPECTIONS)   # Hyperparameter 6 for max intermediates
+                    interpolation_steps = min(int(np.linalg.norm(nearest_config - new_config)//INTERMEDIATE_MIN_STEP), INTERMEDIATE_MAX_INSPECTIONS)   # Hyperparameter 6 for max intermediates
                     if interpolation_steps > 0:
                         interpolated_configs = np.linspace(start=nearest_config, stop=new_config, num=interpolation_steps)
                         for intermediate_config in interpolated_configs:
@@ -77,7 +80,7 @@ class RRTInspectionPlanner(object):
 
                 # Add the vertex to the tree
                 new_id = self.tree.add_vertex(config=new_config, inspected_points=new_inspection_points)
-                self.tree.add_edge(nearest_state_idx, new_id, self.planning_env.robot.compute_distance(nearest_config, new_config))
+                self.tree.add_edge(last_id, new_id, self.planning_env.robot.compute_distance(last_config, new_config))
 
         # print total path cost and time
         curr_idx = self.tree.max_coverage_id
