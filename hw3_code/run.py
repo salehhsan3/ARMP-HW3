@@ -28,4 +28,4 @@ if __name__ == "__main__":
     plan = planner.plan()
 
     # Visualize the final path.
-    planner.planning_env.visualize_plan(plan)
+    planner.planning_env.visualize_plan(plan, "./tests/")
