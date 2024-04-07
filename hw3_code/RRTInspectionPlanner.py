@@ -25,7 +25,7 @@ class RRTInspectionPlanner(object):
         plan = []
 
         # Hyper parameters for added inspection interpolation
-        APPEND_INTERMEDIATE_INSPECTIONS = True
+        APPEND_INTERMEDIATE_INSPECTIONS = False
         INTERMEDIATE_MAX_INSPECTIONS = 50
         INTERMEDIATE_MIN_STEP = np.pi/30
 
@@ -45,11 +45,11 @@ class RRTInspectionPlanner(object):
             if self.tree.max_coverage > best_coverage:
                 best_coverage = self.tree.max_coverage
                 last_counter = counter
-                print("({:.2f},{},{:.2f})".format(time.time()-start_time,counter,best_coverage))
+                print("{:.2f},{},{:.2f}".format(time.time()-start_time,counter,best_coverage))
             counter += 1
             
-            if counter > 15000 + last_counter:
-                print("force stop")
+            if counter > 10000 + last_counter:
+                #print("force stop",file=sys.err)
                 break
             
             # Generate a random config to visit
@@ -90,7 +90,7 @@ class RRTInspectionPlanner(object):
                 self.tree.add_edge(last_id, new_id, self.planning_env.robot.compute_distance(last_config, new_config))
 
         
-        print("({:.2f},{},{:.2f})".format(time.time()-start_time,counter,self.tree.max_coverage))
+        print("{:.2f},{},{:.2f}".format(time.time()-start_time,counter,self.tree.max_coverage))
         # print total path cost and time
         curr_idx = self.tree.max_coverage_id
         start_idx = self.tree.get_root_id()
@@ -107,9 +107,10 @@ class RRTInspectionPlanner(object):
         plan.reverse()
 
         # print total path cost and time
-        print('Total cost of path: {:.2f}'.format(self.compute_cost(plan)))
-        print('Total time: {:.2f}'.format(time.time()-start_time))
-        print('Inspection coverage', self.tree.max_coverage)
+        #print('Total cost of path: {:.2f}'.format(self.compute_cost(plan)))
+        #print('Total time: {:.2f}'.format(time.time()-start_time))
+        #print('Inspection coverage', self.tree.max_coverage)
+        print(" ")
 
         return np.array(plan)
 
