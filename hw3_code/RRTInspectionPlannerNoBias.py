@@ -34,11 +34,8 @@ class RRTInspectionPlanner(object):
         self.tree.add_vertex(self.planning_env.start, self.planning_env.get_inspected_points(self.planning_env.start))
         counter = 0
         while self.tree.max_coverage < self.coverage:
-            #goal_bias = np.random.random()
-            #if goal_bias < self.goal_prob: 
-            #    random_config = self.tree.vertices[self.tree.max_coverage_id].config
-            #else:
-            
+            if(time.time()-start_time > 1000):
+                return None
             if (counter % 100 == 0):
                 print("iteration, ", counter,end="\t")
                 print("self.tree.max_coverage, ", self.tree.max_coverage)
@@ -59,15 +56,6 @@ class RRTInspectionPlanner(object):
                 
                 last_id = nearest_state_idx
                 last_config = nearest_config
-
-                # # This is an improvement for the algorithm that sums up intermediate points for edges
-                # if APPEND_INTERMEDIATE_INSPECTIONS:
-                #     # Get intermediate points
-                #     interpolation_steps = min(int(np.linalg.norm(nearest_config - new_config)//INTERMEDIATE_MIN_STEP), INTERMEDIATE_MAX_INSPECTIONS)   # Hyperparameter 6 for max intermediates
-                #     if interpolation_steps > 0:
-                #         interpolated_configs = np.linspace(start=nearest_config, stop=new_config, num=interpolation_steps)
-                #         for intermediate_config in interpolated_configs:
-                #             new_inspection_points = self.planning_env.compute_union_of_points(new_inspection_points, self.planning_env.get_inspected_points(intermediate_config))
 
                 new_inspection_points = self.planning_env.compute_union_of_points(new_inspection_points, nearest_inspection_points)
 

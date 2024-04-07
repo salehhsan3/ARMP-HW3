@@ -34,10 +34,13 @@ def main(args):
 
     for bias, ext, coverage in all_combinations: # for inspection planning
     # for bias, ext in zip(goal_biases, extensions): # for motion planning
+        if coverage != 0.75 or ext != 'E1' or bias != 0.05:
+            continue # algorithm doesnt converge!
         costs = []
         times = []
+        results = []
 
-        for _ in range(num_executions):
+        for i in range(num_executions):
             
             planning_env = MapEnvironment(json_file=args.map, task=args.task)
 
@@ -58,6 +61,10 @@ def main(args):
 
             costs.append(cost_of_path)
             times.append(execution_time)
+            results.append({
+                f"cost_of_path_{i}": cost_of_path,
+                f"execution_time_{i}": execution_time
+            })
 
         avg_cost = sum(costs) / num_executions
         avg_time = sum(times) / num_executions
@@ -72,7 +79,8 @@ def main(args):
         output_data = {
             "goal_bias": bias,
             "average_cost_of_path": avg_cost,
-            "average_execution_time": avg_time
+            "average_execution_time": avg_time,
+            "results": results  # Add results to output data
         }
         if args.task == 'mp':
             output_file = f"mp-task\\bias={bias}\\{ext}\\output_bias_{args.task}_bias={bias}_ext={ext}.json"

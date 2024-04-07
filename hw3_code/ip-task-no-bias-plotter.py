@@ -55,8 +55,9 @@ def main(args):
         #     continue # algorithm doesnt converge!
         costs = []
         times = []
+        results = []
 
-        for _ in range(num_executions):
+        for i in range(num_executions):
             
             planning_env = MapEnvironment(json_file=args.map, task=args.task)
 
@@ -71,7 +72,7 @@ def main(args):
 
             start_time = time.time()
             
-            plan = run_with_timeout(planner,timeout=1000) # dont allow runs for more than 1000 seconds
+            plan = planner.plan()
             execution_time = time.time() - start_time
             if plan != None:
                 cost_of_path = planner.compute_cost(plan)
@@ -80,9 +81,17 @@ def main(args):
                 costs.append(cost_of_path)
                 times.append(execution_time)
                 succesful_runs += 1
+                results.append({
+                    f"cost_of_path_{i}": cost_of_path,
+                    f"execution_time_{i}": execution_time
+                })
             else:
                 costs.append(0)
                 times.append(0)
+                results.append({
+                    f"cost_of_path_{i}": 'Took longer than 1000 seconds so we stopped it',
+                    f"execution_time_{i}": 'Took longer than 1000 seconds so we stopped it'
+                })
 
         avg_cost = sum(costs) / succesful_runs
         avg_time = sum(times) / succesful_runs
@@ -97,7 +106,8 @@ def main(args):
         output_data = {
             # "goal_bias": bias,
             "average_cost_of_path": avg_cost,
-            "average_execution_time": avg_time
+            "average_execution_time": avg_time,
+            "results": results  # Add results to output data
         }
         if args.task == 'mp':
             output_file = f"mp-task\\bias={bias}\\{ext}\\output_bias_{args.task}_bias={bias}_ext={ext}.json"

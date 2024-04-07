@@ -1,1 +1,14 @@
-{"goal_bias": 0.05, "average_cost_of_path": 14.428300253072134, "average_execution_time": 471.53529036045074}
+{"goal_bias": 0.05, "average_cost_of_path": 13.727204399528466, "average_execution_time": 169.8835080385208, 
+"results": [
+    {"cost_of_path_0": 11.08294759005571, "execution_time_0": 127.53142666816711},
+    {"cost_of_path_1": 12.267430046470757, "execution_time_1": 838.8381650447845},
+    {"cost_of_path_2": 24.415487498670547, "execution_time_2": 113.17196846008301},
+    {"cost_of_path_3": 4.758990502447808, "execution_time_3": 61.255486488342285},
+    {"cost_of_path_4": 11.058107087441376, "execution_time_4": 19.17569375038147},
+    {"cost_of_path_5": 17.421458382018265, "execution_time_5": 55.59165668487549},
+    {"cost_of_path_6": 9.728005806928776, "execution_time_6": 7.951605319976807},
+    {"cost_of_path_7": 8.416597784529891, "execution_time_7": 104.5974748134613},
+    {"cost_of_path_8": 29.856022099076668, "execution_time_8": 279.7436034679413},
+    {"cost_of_path_9": 8.266997197644866, "execution_time_9": 90.97799968719482}
+    ]
+}
