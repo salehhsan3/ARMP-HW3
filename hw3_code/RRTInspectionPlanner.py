@@ -48,7 +48,7 @@ class RRTInspectionPlanner(object):
                 print("{:.2f},{},{:.2f}".format(time.time()-start_time,counter,best_coverage))
             counter += 1
             
-            if counter > 10000 + last_counter:
+            if counter > 15000 + last_counter:
                 #print("force stop",file=sys.err)
                 break
             

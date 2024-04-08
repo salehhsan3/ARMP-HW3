@@ -30,7 +30,7 @@ def parse_file(file_path):
         
         for plot in dict_arr:
             for i in range(len(y_values))[::-1]:
-                if y_values[i] in plot.keys() and y_values[i-1] not in plot.keys():
+                if y_values[i] in plot.keys() and y_values[i-1] not in plot.keys() and i != 0:
                     plot[y_values[i-1]] = plot[y_values[i]]
 
             for i in range(len(y_values)):
@@ -55,6 +55,18 @@ fig,ax = plt.subplots()
 
 plt.xlabel("time (seconds)")
 plt.ylabel("coverage (percent)")
-ax.plot([p[0] for p in average_arr], [p[1] for p in average_arr])
 
+array_e1 = parse_file('out.txt')
+ax.scatter([p[0] for p in array_e1], [p[1] for p in array_e1], label='interp_0.05_E1')
+
+array_e2 = parse_file('oute2.txt')
+ax.scatter([p[0] for p in array_e2], [p[1] for p in array_e2], label='interp_0.05_E2')
+
+default_e1 = parse_file('out_E1_0.txt')
+ax.scatter([p[0] for p in default_e1], [p[1] for p in default_e1], label='default_0_E1')
+
+ax.hlines(y=0.5, xmin = 0, xmax = 350, linestyles='dashdot',colors='black')
+
+ax.hlines(y=0.75, xmin = 0, xmax = 350, linestyles='dashdot',colors='black')
+ax.legend()
 plt.show()
